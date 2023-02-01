@@ -61,18 +61,16 @@ export function track(target, key) {
     depsMap.set(key, dep)
   }
   
+  trackEffects(dep)
+}
+
+export function trackEffects(dep) {
+  if( dep.has(activeEffect) ) return
   dep.add(activeEffect)
   activeEffect.deps.push(dep)
 }
 
-function isTracking() {
-  return shouldTrack && activeEffect !== undefined
-}
-
-// 触发依赖
-export function trigger(target, key) {
-  let depsMap = targetMap.get(target)
-  let deps = depsMap.get(key)
+export function triggerEffects(deps) {
   for (const effect of deps) {
     if( effect.scheduler ) {
       effect.scheduler()
@@ -80,6 +78,17 @@ export function trigger(target, key) {
      effect.run()
     }
   }
+}
+
+export function isTracking() {
+  return shouldTrack && activeEffect !== undefined
+}
+
+// 触发依赖
+export function trigger(target, key) {
+  let depsMap = targetMap.get(target)
+  let deps = depsMap.get(key)
+  triggerEffects(deps)
 }
 
 export function effect(fn, options: any = {}) {

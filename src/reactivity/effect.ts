@@ -1,7 +1,7 @@
 import { extend } from "../shared"
 let activeEffect;
 let shouldTrack;
-class EffectReactive {
+export class ReactiveEffect {
   private _fn: any
   deps = []
   active = true
@@ -92,7 +92,7 @@ export function trigger(target, key) {
 }
 
 export function effect(fn, options: any = {}) {
-  const _effect = new EffectReactive(fn, options.scheduler)
+  const _effect = new ReactiveEffect(fn, options.scheduler)
 
   extend(_effect, options)
   _effect.run()

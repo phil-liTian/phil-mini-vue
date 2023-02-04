@@ -1,4 +1,4 @@
-import { h } from "../../lib/mini-vue.esm.js"
+import { h, createTextVNode } from "../../lib/mini-vue.esm.js"
 import { Foo } from "./Foo.js"
 
 export const App = {
@@ -8,10 +8,10 @@ export const App = {
   },
 
   render() {
-    const title = h('h4', {}, '用来研究slots源码实现')
+    const title = createTextVNode('完成slots的源码实现')
     const p = h('p', {}, '123')
     const foo = h('div', {}, [h(Foo, {}, {
-      header: ({ age }) =>  h('p', {}, 'header' + age),
+      header: ({ age }) =>  [h('p', {}, 'header' + age)],
       footer: () =>  h('p', {}, 'footer')
     })])
     return h('div', {}, [title, foo])

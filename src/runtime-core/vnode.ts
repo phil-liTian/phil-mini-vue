@@ -1,4 +1,5 @@
 import { ShapeFlags } from "../shared/shapeFlags"
+import { Text } from './renderer'
 
 export function createVNode(type, props?, children?) {
   let vnode = {
@@ -21,10 +22,15 @@ export function createVNode(type, props?, children?) {
       vnode.shapeFlags |= ShapeFlags.SLOT_CHILDREN
     }
   }
-
+  
   return vnode
+}
+
+export function createTextVNode(text: string) {
+  return createVNode(Text, {}, text)
 }
 
 function getShapeType(type) {
   return typeof type === 'string' ? ShapeFlags.ELEMENT : ShapeFlags.STATEFUL_COMPONENT
 }
+

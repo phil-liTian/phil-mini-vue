@@ -16,3 +16,16 @@ export const isOn = (key: string) => {
 }
 
 export const hasOwn = (obj, key) =>  Object.prototype.hasOwnProperty.call(obj, key)
+
+// 将肉串样式转化成驼峰
+export const camelize = (str: string) => {
+  return str.replace(/-(\w)/g, (_, c) => {
+    return c ? c.toUpperCase() : ''
+  })
+}
+
+export const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+export const isArray = Array.isArray

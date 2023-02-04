@@ -1,5 +1,6 @@
-import { h } from '../lib/mini-vue.esm.js'
+import { h } from '../../lib/mini-vue.esm.js'
 import { Foo } from './Foo.js'
+import { EmitFoo } from './emitFoo.js'
 
 window.$self = null
 
@@ -12,12 +13,13 @@ export const App = {
     // )
 
     return h('div', { 
-      onClick: () => { console.log('onClick') },
-      onMousedown: () => { console.log('onmousedown') }
+      // onClick: () => { console.log('onClick') },
+      // onMousedown: () => { console.log('onmousedown') }
     }, 
       [
         h('div', {}, `hello ${this.msg}`),
-        h(Foo, { count: 1 })
+        h(Foo, { count: 1 }),
+        h(EmitFoo, { onAddFoo: (a, b) => { console.log(a, b) } })
       ]
     )
   },

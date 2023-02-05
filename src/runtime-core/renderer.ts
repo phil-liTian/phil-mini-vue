@@ -7,7 +7,7 @@ export const Fragment = Symbol('Fragment')
 export const Text = Symbol('Text')
 
 export function createRender(options) {
-  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
+  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = options
 
   function render(vnode, container, parent = null) {
     // console.log('vnode, container, parent = null', vnode, container, parent);
@@ -54,13 +54,13 @@ export function createRender(options) {
   }
 
   function processFragment(n1, vnode, container, parent) {
-    mountChildren(n1, vnode, container, parent)
+    mountChildren(n1, vnode.children, container, parent)
   }
 
   function processElement(n1, vnode: any, container: any, parent) {
     if( n1 ) {
       // 走更新逻辑
-      updateElement(n1, vnode, container)
+      updateElement(n1, vnode, container, parent)
     } else {
       mountElement(n1, vnode, container, parent)
     }
@@ -75,7 +75,7 @@ export function createRender(options) {
     if( shapeFlags & ShapeFlags.TEXT_CHILDREN ) {
       el.textContent = children
     } else if( shapeFlags & ShapeFlags.ARRAY_CHILDREN ) {
-      mountChildren(n1, vnode, el, parent)
+      mountChildren(n1, vnode.children, el, parent)
     }
 
     for (const key in props) {
@@ -94,11 +94,7 @@ export function createRender(options) {
   }
 
   // 更新element
-  function updateElement(n1, n2, container) {
-    console.log('update');
-    console.log('n1', n1);
-    console.log('n2', n2);
-
+  function updateElement(n1, n2, container, parentComponent) {
     // 处理props
     const oldProps = n1.props || EMPTY_OBJ
     const newProps = n2.props || EMPTY_OBJ
@@ -106,6 +102,46 @@ export function createRender(options) {
     patchProps(oldProps, newProps, el)
 
     // 处理children
+    patchChildren(n1, n2, el, parentComponent)
+  }
+
+  function patchChildren(n1, n2, container, parentComponent) {
+    // console.log('n1, n2', n1, n2);
+    const { shapeFlags: prevShapeFlags, children: c1 } = n1
+    const { shapeFlags, children: c2 } = n2
+
+    // 新children是text类型
+    if( shapeFlags & ShapeFlags.TEXT_CHILDREN ) {
+      // 之前的children是array类型的
+      if( prevShapeFlags & ShapeFlags.ARRAY_CHILDREN ) {
+        // 删除原来的数组类型的children
+        unmountChildren(c1)
+        // 设置children内容是text
+        // hostSetElementText(c2, container)
+      } 
+      // 都是text
+      if( c1 !== c2) {
+        hostSetElementText(c2, container)
+      }  
+    } else {
+      if( prevShapeFlags & ShapeFlags.TEXT_CHILDREN ) {
+        // 新的是一个数组，老的是一个文本节点
+        hostSetElementText('', container)
+
+        mountChildren(n1, n2.children, container, parentComponent)
+      } else {
+
+      }
+    }
+  }
+
+  function unmountChildren(children) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el
+      // remove
+      hostRemove(el)
+      
+    }
   }
 
   function patchProps(oldProps, newProps, el) {
@@ -131,8 +167,10 @@ export function createRender(options) {
     
   }
 
-  function mountChildren(n1, vnode, container, parent) {
-    vnode.children.forEach(item => {
+  function mountChildren(n1, children, container, parent) {
+    console.log('children', children);
+    
+    children.forEach(item => {
       patch(n1, item, container, parent)
     })
   }

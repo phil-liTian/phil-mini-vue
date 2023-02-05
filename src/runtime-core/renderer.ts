@@ -1,5 +1,5 @@
 import { effect } from "../reactivity";
-import { isObject, isOn, ShapeFlags } from "../shared/index";
+import { EMPTY_OBJ, isObject, isOn, ShapeFlags } from "../shared/index";
 import { createComponentInstance, setupComponent } from "./component"
 import { createAppAPI } from "./createApp";
 
@@ -7,7 +7,7 @@ export const Fragment = Symbol('Fragment')
 export const Text = Symbol('Text')
 
 export function createRender(options) {
-  const { createElement, patchProp, insert } = options
+  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
 
   function render(vnode, container, parent = null) {
     // console.log('vnode, container, parent = null', vnode, container, parent);
@@ -70,7 +70,7 @@ export function createRender(options) {
   function mountElement(n1, vnode, container, parent) {
     
     const { type, children, props, shapeFlags } = vnode
-    const el = (vnode.el = createElement(type))
+    const el = (vnode.el = hostCreateElement(type))
     
     if( shapeFlags & ShapeFlags.TEXT_CHILDREN ) {
       el.textContent = children
@@ -81,7 +81,7 @@ export function createRender(options) {
     for (const key in props) {
       const value = props[key]
 
-      patchProp(el, key, value)
+      hostPatchProp(el, key, null, value)
       // if( isOn(key) ) {
       //   const eventName = key.slice(2).toLowerCase()
       //   el.addEventListener(eventName, value)
@@ -90,7 +90,7 @@ export function createRender(options) {
     }
 
     // container.append(el)
-    insert(el, container)
+    hostInsert(el, container)
   }
 
   // 更新element
@@ -100,15 +100,35 @@ export function createRender(options) {
     console.log('n2', n2);
 
     // 处理props
-    const oldProps = n1.props
-    const newProps = n2.props
-    patchProps(oldProps, newProps)
+    const oldProps = n1.props || EMPTY_OBJ
+    const newProps = n2.props || EMPTY_OBJ
+    const el = (n2.el = n1.el)
+    patchProps(oldProps, newProps, el)
 
     // 处理children
   }
 
-  function patchProps(oldProps, newProps) {
+  function patchProps(oldProps, newProps, el) {
+    // console.log('oldProps, newProps', oldProps, newProps);
+    // 第一种情况，改变props的值
+    for (const key in newProps) {
+      const nextProp = newProps[key]
+      const prevProp = oldProps[key]
+      
+      if( nextProp !== prevProp ) {
+        hostPatchProp(el, key, prevProp, nextProp)
+      }
+    }
 
+    // 第三种情况 删除了prop
+    if ( oldProps !== EMPTY_OBJ ) {
+      for (const key in oldProps) {
+        if(!(key in newProps)) {
+          hostPatchProp(el, key, oldProps[key], null)
+        }
+      }
+    }
+    
   }
 
   function mountChildren(n1, vnode, container, parent) {

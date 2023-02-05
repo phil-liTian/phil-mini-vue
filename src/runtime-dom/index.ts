@@ -7,14 +7,21 @@ function createElement(type) {
   return document.createElement(type)
 }
 
-function patchProp(el, key, value) {
+function patchProp(el, key, oldValue, value) {
+  console.log('oldValue, value', oldValue, value);
+  
   // console.log('patchProp-----');
 
   if( isOn(key) ) {
     const eventName = key.slice(2).toLowerCase()
     el.addEventListener(eventName, value)
   }
-  el.setAttribute(key, value)   
+  // 第二种情况将value设置成undefined、null
+  if( value == undefined || value == null ) {
+    el.removeAttribute(key)
+  } else {
+    el.setAttribute(key, value)   
+  }
 }
 
 function insert(el, container) {

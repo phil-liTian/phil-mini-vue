@@ -29,3 +29,5 @@ export const capitalize = (str: string) => {
 }
 
 export const isArray = Array.isArray
+
+export const EMPTY_OBJ = {}

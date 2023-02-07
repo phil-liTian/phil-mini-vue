@@ -2,7 +2,7 @@ import { h } from '../../lib/mini-vue.esm.js'
 import { TextToArray } from './TextToArray.js'
 import { ArrayToText } from './ArrayToText.js'
 import { TextToText } from './TextToText.js'
-// console.log(TextToArray);
+import { ArrayToArray } from './ArrayToArray.js'
 
 /**
  * 由于children存在两种类型(Text, Array)，所以更新children需要分四种情况
@@ -14,17 +14,21 @@ import { TextToText } from './TextToText.js'
  * 
  */
 
-
 export const App = {
   setup() {
     return {}
   },
 
   render() {
-    const title = h('h4', {}, '实现children元素更新')
+    const p = h('p', {},  '实现children元素更新')
+    const title = h('h4', {}, [p])
 
     return h('div', {}, 
-      [ title, h(TextToArray) ]
+      [ title, 
+        // h(ArrayToText) 
+        // h(TextToArray) 
+        h(ArrayToArray)
+      ]
     )
   }
 }

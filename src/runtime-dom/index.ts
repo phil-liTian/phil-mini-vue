@@ -8,7 +8,6 @@ function createElement(type) {
 }
 
 function patchProp(el, key, oldValue, value) {
-  console.log('oldValue, value', oldValue, value);
   
   // console.log('patchProp-----');
 
@@ -24,9 +23,10 @@ function patchProp(el, key, oldValue, value) {
   }
 }
 
-function insert(el, container) {
+function insert(el, container, anchor = null) {
   // console.log('insert-----');
-  container.append(el)
+  // container.append(el)
+  container.insertBefore(el, anchor)
 }
 
 function remove(child) {

@@ -22,7 +22,7 @@ export function createRender(options) {
    * @param container 容器
    * @param parent 父组件
    */
-  function patch(n1, n2, container, parent) {
+  function patch(n1, n2, container, parent, anchor = null) {
     
     const { shapeFlags } = n2
     
@@ -37,7 +37,7 @@ export function createRender(options) {
     
       default:
         if( shapeFlags & ShapeFlags.ELEMENT ) {
-          processElement(n1, n2, container, parent)
+          processElement(n1, n2, container, parent, anchor)
         } else if( shapeFlags & ShapeFlags.STATEFUL_COMPONENT ) {
           // 处理组件
           processComponent(n2, container, parent)
@@ -57,21 +57,23 @@ export function createRender(options) {
     mountChildren(n1, vnode.children, container, parent)
   }
 
-  function processElement(n1, vnode: any, container: any, parent) {
+  function processElement(n1, vnode: any, container: any, parent, anchor) {
     if( n1 ) {
       // 走更新逻辑
       updateElement(n1, vnode, container, parent)
     } else {
-      mountElement(n1, vnode, container, parent)
+      mountElement(n1, vnode, container, parent, anchor)
     }
   }
 
   // 初始化element
-  function mountElement(n1, vnode, container, parent) {
+  function mountElement(n1, vnode, container, parent, anchor) {
     
     const { type, children, props, shapeFlags } = vnode
-    const el = (vnode.el = hostCreateElement(type))
+    // console.log('type', hostCreateElement(type));
     
+    const el = (vnode.el = hostCreateElement(type))
+
     if( shapeFlags & ShapeFlags.TEXT_CHILDREN ) {
       el.textContent = children
     } else if( shapeFlags & ShapeFlags.ARRAY_CHILDREN ) {
@@ -90,11 +92,13 @@ export function createRender(options) {
     }
 
     // container.append(el)
-    hostInsert(el, container)
+    hostInsert(el, container, anchor)
   }
 
   // 更新element
   function updateElement(n1, n2, container, parentComponent) {
+    console.log('n1, n2==>', n1, n2);
+    
     // 处理props
     const oldProps = n1.props || EMPTY_OBJ
     const newProps = n2.props || EMPTY_OBJ
@@ -106,7 +110,7 @@ export function createRender(options) {
   }
 
   function patchChildren(n1, n2, container, parentComponent) {
-    // console.log('n1, n2', n1, n2);
+    console.log('n1, n2', n1, n2);
     const { shapeFlags: prevShapeFlags, children: c1 } = n1
     const { shapeFlags, children: c2 } = n2
 
@@ -124,15 +128,85 @@ export function createRender(options) {
         hostSetElementText(c2, container)
       }  
     } else {
+      
       if( prevShapeFlags & ShapeFlags.TEXT_CHILDREN ) {
         // 新的是一个数组，老的是一个文本节点
         hostSetElementText('', container)
-
+        
         mountChildren(n1, n2.children, container, parentComponent)
+        
       } else {
-
+        // 处理原来的children和新children都是array的情况
+        patchedKeyedChildren(n1, n2, container, parentComponent)
       }
     }
+  }
+  
+
+  function patchedKeyedChildren(n1, n2, container, parentComponent) {
+    
+    const c1 = n1.children
+    const c2 = n2.children
+    
+    let i = 0
+    let e1 = c1.length - 1
+    let e2 = c2.length - 1
+    const l2 = c2.length
+
+    function isSameNodeType(n1, n2) {
+      return n1.key === n2.key && n1.type === n2.type
+    }
+
+    // 左 => 右
+    while(i <= Math.min(e1, e2)) {
+      const prevChild = c1[i]
+      const nextChild = c2[i]
+
+      // 节点相同
+      if(!isSameNodeType(prevChild, nextChild)) {
+        break
+      }
+      patch(prevChild, nextChild, container, parentComponent)
+      i++
+    }
+
+    // 右 => 左
+    while(i <= Math.min(e1, e2)) {
+      const prevChild = c1[e1]
+      const nextChild = c2[e2]
+
+      // 节点相同
+      if(!isSameNodeType(prevChild, nextChild)) {
+        break
+      }
+      patch(prevChild, nextChild, container, parentComponent)
+      e1--
+      e2--
+    }
+
+    if( i > e1 && i<= e2 ) {
+      // 新的比旧的长 需要创建新节点
+      const nextIdx = e2 + 1 
+      console.log('c2[nextIdx]', c2[nextIdx]);
+      const anchor = nextIdx < l2 ? c2[nextIdx].el : null
+      // 创建新节点
+      while(i <= e2) {
+        console.log(`新的比旧的长，需要创建新vnode:${c2[i].key}`);
+        patch(null, c2[i], container, parentComponent, anchor)
+        i++
+      }
+    } else if( i > e2 && i <= e1 ) {
+      // 新的比旧的短 需要删除节点
+      while( i <= e1 ) {
+        console.log(`新的比旧的短，需要删除vnode:${c1[i].key}`);
+        hostRemove(c1[i].el)
+        i++
+      }
+    }
+    
+    // console.log('i', i);
+    // console.log('e1, e2', e1, e2);
+    
   }
 
   function unmountChildren(children) {
@@ -168,10 +242,8 @@ export function createRender(options) {
   }
 
   function mountChildren(n1, children, container, parent) {
-    console.log('children', children);
-    
     children.forEach(item => {
-      patch(n1, item, container, parent)
+      patch(null, item, container, parent)
     })
   }
 

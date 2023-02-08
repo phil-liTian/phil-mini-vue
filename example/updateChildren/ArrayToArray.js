@@ -78,17 +78,17 @@ import { h, ref } from "../../lib/mini-vue.esm.js"
 // ]
 
 // 4.
-const originalArr = [
-  h('div', { key: 1 }, 'A'),
-  h('div', { key: 2 }, 'B'),
-]
+// const originalArr = [
+//   h('div', { key: 1 }, 'A'),
+//   h('div', { key: 2 }, 'B'),
+// ]
 
-const newArr = [
-  h('div', { key: 3 }, 'C'),
-  h('div', { key: 4 }, 'D'),
-  h('div', { key: 1 }, 'A'),
-  h('div', { key: 2 }, 'B'),
-]
+// const newArr = [
+//   h('div', { key: 3 }, 'C'),
+//   h('div', { key: 4 }, 'D'),
+//   h('div', { key: 1 }, 'A'),
+//   h('div', { key: 2 }, 'B'),
+// ]
 
 // 5. 
 // const originalArr = [
@@ -102,6 +102,106 @@ const newArr = [
 //   h('div', { key: 1 }, 'A'),
 //   h('div', { key: 2 }, 'B'),
 // ]
+
+
+// 5.1.1
+// a,b,(c,e,d),f,g
+// a,b,(e,c),f,g
+// 中间部分，老的比新的多， 那么多出来的直接就可以被干掉(优化删除逻辑)
+// const originalArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C", id: "c-prev" }, "C"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// const newArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "C", id:"c-next" }, "C"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// 5.1.1
+// a,b,(c,e,d),f,g
+// a,b,(e,c),f,g
+// 中间部分，老的比新的多， 那么多出来的直接就可以被干掉(优化删除逻辑)
+// const originalArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C", id: "c-prev" }, "C"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// const newArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "C", id:"c-next" }, "C"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// 2 移动 (节点存在于新的和老的里面，但是位置变了)
+
+// 2.1
+// a,b,(c,d,e),f,g
+// a,b,(e,c,d),f,g
+// 最长子序列： [1,2]
+
+// const originalArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C" }, "C"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// const newArr = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "C" }, "C"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
+
+// 综合例子
+// a,b,(c,d,e,z),f,g
+// a,b,(d,c,y,e),f,g
+
+const originalArr = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "Z" }, "Z"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
+
+const newArr = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "C" }, "C"),
+  h("p", { key: "Y" }, "Y"),
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
 
 export const ArrayToArray = {
   setup() {

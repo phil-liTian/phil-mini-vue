@@ -1,6 +1,7 @@
 import { effect } from "../reactivity";
 import { EMPTY_OBJ, isObject, isOn, ShapeFlags } from "../shared";
 import { createComponentInstance, setupComponent } from "./component"
+import { shouldUpdateComponent } from "./componentRenderUtils";
 import { createAppAPI } from "./createApp";
 
 export const Fragment = Symbol('Fragment')
@@ -40,16 +41,14 @@ export function createRender(options) {
           processElement(n1, n2, container, parent, anchor)
         } else if( shapeFlags & ShapeFlags.STATEFUL_COMPONENT ) {
           // 处理组件
-          processComponent(n2, container, parent)
+          processComponent(n1, n2, container, parent)
         }
         break;
     }
   }
 
   function processText(n1, vnode, container) {
-    
     const textContent = (vnode.el = document.createTextNode(vnode.children))
-    console.log('textContent', textContent);
     container.append(textContent)
   }
 
@@ -138,7 +137,6 @@ export function createRender(options) {
       }
     }
   }
-  
 
   function patchedKeyedChildren(n1, n2, container, parentComponent, parentAnchor) {
     
@@ -320,20 +318,39 @@ export function createRender(options) {
     })
   }
 
-  function processComponent(vnode, container, parent) {
-    mountComponent(vnode, container, parent)
+  function processComponent(n1, vnode, container, parent) {
+    if( !n1 ) {
+      mountComponent(vnode, container, parent)
+    } else {
+      updateComponent(n1, vnode)
+    }
+  }
+
+  // 更新组件
+  function updateComponent(n1, n2) {
+    const instance = n2.component = n1.component
+    if( shouldUpdateComponent(n1, n2) ) {
+      // 更新成n2
+      instance.next = n2
+      instance.update()
+    } else {
+      console.log(`组件不需要更新: ${instance}`);
+      n2.component = n1.component;
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
 
   function mountComponent(vnode, container, parent) {
-    const instance = createComponentInstance(vnode, parent)
+    const instance = (vnode.component = createComponentInstance(vnode, parent))
+    
     setupComponent(instance)
-
     setupRenderEffect(instance, vnode, container)
   }
 
   function setupRenderEffect(instance: any, vnode, container) {
     const { proxy } = instance
-    effect(() => {
+    instance.update = effect(() => {
       // console.log('instance', instance);
       if( !instance.isMounted ) {
         // init
@@ -346,12 +363,28 @@ export function createRender(options) {
         instance.isMounted = true
       } else {
         // update
+        const { next, vnode } = instance
+        if( next ) {
+          // 更新组件的内容
+          // next 和 vnode的区别是： 我们此时需要实现的是将vnode => next
+          next.el = vnode.el
+          updateComponentPreRender(instance, next)
+        }
+
         const subTree = instance.render.call(proxy)
         const prevSubTree = instance.subTree
         instance.subTree = subTree
         patch(prevSubTree, subTree, container, instance)
       }
     })
+  }
+
+  function updateComponentPreRender(instance, nextVNode) {
+    nextVNode.component = instance
+    instance.vnode = nextVNode
+    instance.next = null
+    // 将nextVNode的props赋值到实例的props上
+    instance.props = nextVNode.props
   }
 
   return {

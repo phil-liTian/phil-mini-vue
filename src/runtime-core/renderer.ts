@@ -3,6 +3,7 @@ import { EMPTY_OBJ, isObject, isOn, ShapeFlags } from "../shared";
 import { createComponentInstance, setupComponent } from "./component"
 import { shouldUpdateComponent } from "./componentRenderUtils";
 import { createAppAPI } from "./createApp";
+import { queueJobs } from "./scheduler";
 
 export const Fragment = Symbol('Fragment')
 export const Text = Symbol('Text')
@@ -370,11 +371,15 @@ export function createRender(options) {
           next.el = vnode.el
           updateComponentPreRender(instance, next)
         }
-
         const subTree = instance.render.call(proxy)
         const prevSubTree = instance.subTree
         instance.subTree = subTree
         patch(prevSubTree, subTree, container, instance)
+      }
+    }, {
+      scheduler: () => {
+        // console.log('scheduler');
+        queueJobs(instance.update)
       }
     })
   }

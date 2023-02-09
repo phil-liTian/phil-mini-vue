@@ -1,6 +1,7 @@
 import { ShapeFlags } from "../shared/shapeFlags"
 import { Text } from './renderer'
 
+// 创建一个虚拟节点，后续尽量都基于这个vnode进行操作
 export function createVNode(type, props?, children?) {
   let vnode = {
     type,
@@ -28,10 +29,12 @@ export function createVNode(type, props?, children?) {
   return vnode
 }
 
+// 创建一个文本节点
 export function createTextVNode(text: string) {
   return createVNode(Text, {}, text)
 }
 
+// 获取类型
 function getShapeType(type) {
   return typeof type === 'string' ? ShapeFlags.ELEMENT : ShapeFlags.STATEFUL_COMPONENT
 }

@@ -107,6 +107,7 @@ export function createRender(options) {
     patchChildren(n1, n2, el, parentComponent, anchor)
   }
 
+  // 更新children
   function patchChildren(n1, n2, container, parentComponent, anchor) {
     const { shapeFlags: prevShapeFlags, children: c1 } = n1
     const { shapeFlags, children: c2 } = n2
@@ -139,8 +140,8 @@ export function createRender(options) {
     }
   }
 
+  // 这里处理的是最复杂的一种情况，即新老节点都是array，这里用到双端diff算法来实现更新
   function patchedKeyedChildren(n1, n2, container, parentComponent, parentAnchor) {
-    
     const c1 = n1.children
     const c2 = n2.children
     
@@ -199,7 +200,7 @@ export function createRender(options) {
         i++
       }
     } else {
-      // 处理乱序的情况
+      // 处理乱序的情况，原则是尽量减少真实dom操作
       const s1 = i
       const s2 = i
       // 处理优化的地方
@@ -355,6 +356,7 @@ export function createRender(options) {
       // console.log('instance', instance);
       if( !instance.isMounted ) {
         // init
+        // 这里就保证了render函数中的this指向的是proxy实例，这个proxy是在setupStatefulComponent中挂载的
         const subTree = instance.render.call(proxy)
 
         instance.subTree = subTree
@@ -384,6 +386,7 @@ export function createRender(options) {
     })
   }
 
+  // 更新组件
   function updateComponentPreRender(instance, nextVNode) {
     nextVNode.component = instance
     instance.vnode = nextVNode

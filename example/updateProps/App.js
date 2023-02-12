@@ -31,6 +31,7 @@ export const App = {
     }
   },
   render() {
+    console.log('this', this.props);
     return h('div', { ...this.props }, [
       h('h4', {}, 'update props'),
       h('button', { onClick: this.changePropsDemo1 }, 'change props'),

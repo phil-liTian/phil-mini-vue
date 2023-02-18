@@ -1,13 +1,13 @@
-import { getCurrentInstance } from "./component";
+import { getCurrentInstance } from './component'
 
-export function provide(key, value) {
-  // 存 
+export function provide (key, value) {
+  // 存
   let currentInstance: any = getCurrentInstance()
-  if( currentInstance ) {
+  if (currentInstance) {
     let { provides, parent } = currentInstance
     const parentProvides = parent.provides
-    
-    if( provides === parentProvides ) {
+
+    if (provides === parentProvides) {
       provides = currentInstance.provides = Object.create(parentProvides)
     }
 
@@ -15,14 +15,14 @@ export function provide(key, value) {
   }
 }
 
-export function inject(key, defaultValue) {
+export function inject (key, defaultValue) {
   // 取
   const currentInstance: any = getCurrentInstance()
   const { parent } = currentInstance
   const parentProvides = parent.provides
-  
-  if( defaultValue ) {
-    if( typeof defaultValue === 'function' ) {
+
+  if (defaultValue) {
+    if (typeof defaultValue === 'function') {
       return defaultValue()
     }
     return defaultValue

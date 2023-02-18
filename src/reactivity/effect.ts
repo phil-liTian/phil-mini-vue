@@ -1,18 +1,18 @@
-import { extend } from "../shared"
-let activeEffect;
-let shouldTrack;
+import { extend } from '../shared'
+let activeEffect
+let shouldTrack
 export class ReactiveEffect {
   private _fn: any
   deps = []
   active = true
   onStop?: () => void
 
-  constructor(fn, public scheduler?) {
+  constructor (fn, public scheduler?) {
     this._fn = fn
   }
 
-  run() {
-    if( !this.active ) {
+  run () {
+    if (!this.active) {
       return this._fn()
     }
 
@@ -25,10 +25,10 @@ export class ReactiveEffect {
     return result
   }
 
-  stop() {
-    if( this.active ) {
+  stop () {
+    if (this.active) {
       cleanupEffect(this)
-      if(this.onStop) {
+      if (this.onStop) {
         this.onStop()
       }
       this.active = false
@@ -36,7 +36,7 @@ export class ReactiveEffect {
   }
 }
 
-function cleanupEffect(effect) {
+function cleanupEffect (effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect)
   })
@@ -46,52 +46,52 @@ function cleanupEffect(effect) {
 
 // 依赖收集
 let targetMap = new Map()
-export function track(target, key) {
-  if(!isTracking() ) return
-  
+export function track (target, key) {
+  if (!isTracking()) return
+
   let depsMap = targetMap.get(target)
-  if( !depsMap ) {
+  if (!depsMap) {
     depsMap = new Map()
     targetMap.set(target, depsMap)
   }
 
   let dep = depsMap.get(key)
-  if( !dep ) {
+  if (!dep) {
     dep = new Set()
     depsMap.set(key, dep)
   }
-  
+
   trackEffects(dep)
 }
 
-export function trackEffects(dep) {
-  if( dep.has(activeEffect) ) return
+export function trackEffects (dep) {
+  if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   activeEffect.deps.push(dep)
 }
 
-export function triggerEffects(deps) {
+export function triggerEffects (deps) {
   for (const effect of deps) {
-    if( effect.scheduler ) {
+    if (effect.scheduler) {
       effect.scheduler()
     } else {
-     effect.run()
+      effect.run()
     }
   }
 }
 
-export function isTracking() {
+export function isTracking () {
   return shouldTrack && activeEffect !== undefined
 }
 
 // 触发依赖
-export function trigger(target, key) {
+export function trigger (target, key) {
   let depsMap = targetMap.get(target)
   let deps = depsMap.get(key)
   triggerEffects(deps)
 }
 
-export function effect(fn, options: any = {}) {
+export function effect (fn, options: any = {}) {
   const _effect = new ReactiveEffect(fn, options.scheduler)
 
   extend(_effect, options)
@@ -103,7 +103,6 @@ export function effect(fn, options: any = {}) {
   return runner
 }
 
-
-export function stop(runner) {
+export function stop (runner) {
   runner.effect.stop()
 }

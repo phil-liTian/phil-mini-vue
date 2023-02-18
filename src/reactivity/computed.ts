@@ -1,4 +1,4 @@
-import { ReactiveEffect } from "./effect"
+import { ReactiveEffect } from './effect'
 
 class ComputedRefImpl {
   private _getter: any
@@ -6,17 +6,17 @@ class ComputedRefImpl {
   private _effect: ReactiveEffect
   private _dirty: boolean
 
-  constructor(getter) {
+  constructor (getter) {
     this._dirty = true
 
     this._effect = new ReactiveEffect(getter, () => {
-      if( this._dirty ) return
+      if (this._dirty) return
       this._dirty = true
     })
   }
 
-  get value() {
-    if( this._dirty ) {
+  get value () {
+    if (this._dirty) {
       this._dirty = false
       this._value = this._effect.run()
     }
@@ -24,6 +24,6 @@ class ComputedRefImpl {
   }
 }
 
-export function computed(getter) {
+export function computed (getter) {
   return new ComputedRefImpl(getter)
 }

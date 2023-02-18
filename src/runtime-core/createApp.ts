@@ -1,15 +1,14 @@
 // import { render } from "./renderer"
-import { createVNode } from "./vnode"
+import { createVNode } from './vnode'
 
-export function createAppAPI(render) {
-  return function createApp(rootComponent) {
+export function createAppAPI (render) {
+  return function createApp (rootComponent) {
     return {
-      mount(rootContainer) {
+      mount (rootContainer) {
         const vNode = createVNode(rootComponent)
-        
+
         render(vNode, rootContainer)
       }
     }
   }
 }
-
